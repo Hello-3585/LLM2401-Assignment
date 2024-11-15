@@ -35,7 +35,7 @@ node_context_df = pd.read_csv(NODE_CONTEXT_PATH)
 edge_evidence = False
 
 
-MODE = "0"
+MODE = "2"
 ### MODE 0: Original KG_RAG                     ### 
 ### MODE 1: jsonlize the context from KG search ### 
 ### MODE 2: Add the prior domain knowledge      ### 
@@ -45,7 +45,19 @@ def main():
     start_time = time.time()
     question_df = pd.read_csv(QUESTION_PATH)
     answer_list = []
-    
+
+    with open('Prior.txt', 'r') as file:
+        prior = file.read()
+    file.close()
+    print("Prior")
+    print(prior)
+
+    with open('Jsonizer.txt','r') as file:
+        json_prompt=file.read()
+    file.close()
+    print("JSON PROMPT")
+    print(json_prompt)
+
     for index, row in tqdm(question_df.iterrows(), total=306):
         try: 
             question = row["text"]
@@ -53,22 +65,34 @@ def main():
                 ### MODE 0: Original KG_RAG                     ### 
                 context = retrieve_context(row["text"], vectorstore, embedding_function_for_context_retrieval, node_context_df, CONTEXT_VOLUME, QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD, QUESTION_VS_CONTEXT_MINIMUM_SIMILARITY, edge_evidence, model_id=CHAT_MODEL_ID)
                 enriched_prompt = "Context: "+ context + "\n" + "Question: "+ question
+                # print(enriched_prompt)
                 output = get_Gemini_response(enriched_prompt, SYSTEM_PROMPT, temperature=TEMPERATURE)
 
             if MODE == "1":
                 ### MODE 1: jsonlize the context from KG search ### 
                 ### Please implement the first strategy here    ###
-                output = '...'
+                context = retrieve_context(row["text"], vectorstore, embedding_function_for_context_retrieval, node_context_df, CONTEXT_VOLUME, QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD, QUESTION_VS_CONTEXT_MINIMUM_SIMILARITY, edge_evidence, model_id=CHAT_MODEL_ID)
+                jsonized=get_Gemini_response(context, json_prompt,temperature=TEMPERATURE)
+                enriched_prompt = "Context: \n"+ jsonized + "\n" + "Question: \n"+ question
+                # print(enriched_prompt)
+                output = get_Gemini_response(enriched_prompt, SYSTEM_PROMPT, temperature=TEMPERATURE)
 
             if MODE == "2":
                 ### MODE 2: Add the prior domain knowledge      ### 
                 ### Please implement the second strategy here   ###
-                output = '...'
+                context = retrieve_context(row["text"], vectorstore, embedding_function_for_context_retrieval, node_context_df, CONTEXT_VOLUME, QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD, QUESTION_VS_CONTEXT_MINIMUM_SIMILARITY, edge_evidence, model_id=CHAT_MODEL_ID)
+                enriched_prompt= "Instructions: \n"+ prior+"\nContext: \n"+ context +"\nQuestion: \n"+question
+                # print(enriched_prompt)
+                output = get_Gemini_response(enriched_prompt, SYSTEM_PROMPT, temperature=TEMPERATURE)
             
             if MODE == "3":
                 ### MODE 3: Combine MODE 1 & 2                  ### 
                 ### Please implement the third strategy here    ###
-                output = '...'
+                context = retrieve_context(row["text"], vectorstore, embedding_function_for_context_retrieval, node_context_df, CONTEXT_VOLUME, QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD, QUESTION_VS_CONTEXT_MINIMUM_SIMILARITY, edge_evidence, model_id=CHAT_MODEL_ID)
+                jsonized=get_Gemini_response(context, json_prompt,temperature=TEMPERATURE)
+                enriched_prompt= "Instructions: \n"+ prior+"Context: \n"+ jsonized +"\nQuestion: \n"+question
+                # print(enriched_prompt)
+                output = get_Gemini_response(enriched_prompt, SYSTEM_PROMPT, temperature=TEMPERATURE)
 
             answer_list.append((row["text"], row["correct_node"], output))
         except Exception as e:

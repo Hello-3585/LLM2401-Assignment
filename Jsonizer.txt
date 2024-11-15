@@ -1,0 +1,13 @@
+Convert the provided biomedical context of diseases into a structured JSON formatted in the following way
+{
+"Diseases": {
+	disease_name : {
+		"Genetic Associations": [
+			{"Gene": gene_name},
+			{"Variant": Variant_name},
+			]
+		}
+	}
+}
+
+without ''' and json in front and back and maintain the intendations

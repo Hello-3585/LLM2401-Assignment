@@ -1,0 +1,8 @@
+Use the Context provided as follows:
+1. Options:
+	The correct answer is always included in given list. 
+	Use the options to filter out irrelevant details provided in the context.
+
+2. Genes and Variants:
+	Only focus on the information about the genes and variants.
+	Please ignore the other information.

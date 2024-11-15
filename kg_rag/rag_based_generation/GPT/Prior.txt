@@ -1,0 +1,9 @@
+Use the Context provided as follows:
+1. Direct Information:
+	If the context directly mentions the diseases asked in the question, ignore other parts of the context and answer based only on knowledge provided in the context associated with the diseases.
+2. Exclusions:
+        Ignore descriptions of symptoms and patient backgrounds unless they clarify genetic factors or disease associations.
+        Skip details about the environment and personal habits unless they're important for understanding how genes and environment interact.
+3. Genetic Information and Variants:
+        Prioritize details on genetic markers, mutations, or variants directly linked to the disease.
+	Emphasize genetic variations that influence gene functionality or impact responses to medications.
